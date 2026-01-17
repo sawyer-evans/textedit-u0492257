@@ -15,4 +15,13 @@ Undo, Redo, Cut, Copy, Paste, and Select All were added as keyboard shortcuts, a
 This is handled by QPlainTextEdit from Qt, which allows the program to detect mouse movement, clicks, text input, etc. This feature was also manually tested.
 
 
+## R2
+
+### Multiple Tabs
+User can now double click on the file explorer to open multiple tabs in the window, clicking on one to bring it to the front, and dragging them to reorder. Tabs can be closed until there is one left, and closing the final tab opens a new, empty, text file. Unit tests were added to check the functionality of closing and opening new tabs, and UI was tested manually.
+
+### Split-Screen View
+Current feature I am still in progress of working on. User can drag and drop tabs into different areas of the screen to automatically create a divided, split-screen view. Right now, there are some bugs with closing tabs, equally dividing the screen size, but the basic functionality is there and just needs a few tweaks. In the process of adding more tests to fix these bugs.
+
+
 
