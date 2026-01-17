@@ -21,6 +21,10 @@ class FileActions:
         self.main_window = main_window
     
     @property
+    def tab_widget(self):
+        return self.main_window.tab_widget
+    
+    @property
     def editor(self):
         return self.main_window.editor
     
@@ -30,13 +34,14 @@ class FileActions:
     
     def _check_unsaved_changes(self):
         """Prompt user if there are unsaved changes. Returns True if safe to proceed."""
-        if not self.document.is_modified:
+        doc = self.document
+        if not doc or not doc.is_modified:
             return True
         
         reply = QMessageBox.question(
             self.main_window,
             "Unsaved Changes",
-            f"Save changes to {self.document.display_name}?",
+            f"Save changes to {doc.display_name}?",
             QMessageBox.StandardButton.Save |
             QMessageBox.StandardButton.Discard |
             QMessageBox.StandardButton.Cancel
@@ -50,24 +55,18 @@ class FileActions:
             return False
     
     def new_file(self):
-        """Create a new empty file."""
-        if not self._check_unsaved_changes():
-            return False
-        
-        self.editor.clear()
-        self.document.reset()
+        """Create a new tab."""
+        self.tab_widget.new_tab()
         self.main_window.update_title()
         return True
     
     def open_file(self, file_path=None):
-        """Open a file dialog and load selected file."""
-        if not self._check_unsaved_changes():
-            return False
-        
+        """Open a file in a new tab."""
         if file_path is None:
             start_dir = get_default_directory()
-            if self.document.file_path:
-                start_dir = os.path.dirname(self.document.file_path)
+            doc = self.document
+            if doc and doc.file_path:
+                start_dir = os.path.dirname(doc.file_path)
             
             file_path, _ = QFileDialog.getOpenFileName(
                 self.main_window,
@@ -79,36 +78,34 @@ class FileActions:
         if not file_path:
             return False
         
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            
-            self.editor.setPlainText(content)
-            self.document.file_path = file_path
-            self.document.is_modified = False
-            self.main_window.update_title()
-            return True
-        except Exception as e:
-            QMessageBox.critical(
-                self.main_window,
-                "Error",
-                f"Could not open file:\n{e}"
-            )
-            return False
+        result = self.tab_widget.open_file(file_path)
+        self.main_window.update_title()
+        return result
     
     def save_file(self):
         """Save current file, or Save As if untitled."""
-        if self.document.file_path is None:
+        doc = self.document
+        if not doc:
+            return False
+        
+        if doc.file_path is None:
             return self.save_file_as()
         
-        return self._write_file(self.document.file_path)
+        result = self.tab_widget.save_current()
+        self.main_window.update_title()
+        return result
     
     def save_file_as(self):
         """Save file with a new name."""
-        if self.document.file_path:
-            default_path = self.document.file_path
+        doc = self.document
+        editor = self.editor
+        if not doc or not editor:
+            return False
+        
+        if doc.file_path:
+            default_path = doc.file_path
         else:
-            default_path = os.path.join(get_default_directory(), self.document.display_name)
+            default_path = os.path.join(get_default_directory(), doc.display_name)
         
         file_path, _ = QFileDialog.getSaveFileName(
             self.main_window,
@@ -120,16 +117,11 @@ class FileActions:
         if not file_path:
             return False
         
-        return self._write_file(file_path)
-    
-    def _write_file(self, file_path):
-        """Write editor content to file."""
         try:
             with open(file_path, "w", encoding="utf-8") as f:
-                f.write(self.editor.toPlainText())
+                f.write(editor.toPlainText())
             
-            self.document.file_path = file_path
-            self.document.is_modified = False
+            self.tab_widget.mark_current_saved(file_path)
             self.main_window.update_title()
             return True
         except Exception as e:
