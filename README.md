@@ -1,5 +1,7 @@
 # textedit-u0492257
 
+to run, "python3 run.py"
+
 ## R1
 
 ### Opening and Saving Files
