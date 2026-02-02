@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import QPlainTextEdit, QWidget, QTextEdit
 from PyQt6.QtGui import QFont, QPainter, QColor, QTextFormat
 from PyQt6.QtCore import Qt, QRect, QSize
 
+from editor.syntax_highlighter import SyntaxHighlighter
+
 
 class LineNumberArea(QWidget):
     """Widget that displays line numbers alongside the editor."""
@@ -26,6 +28,8 @@ class TextEditor(QPlainTextEdit):
         super().__init__(parent)
         self.line_number_area = LineNumberArea(self)
         
+        self.syntax_highlighter = SyntaxHighlighter(self.document())
+
         self._setup_appearance()
         self._connect_signals()
         self._update_line_number_area_width()
@@ -117,6 +121,10 @@ class TextEditor(QPlainTextEdit):
             bottom = top + int(self.blockBoundingRect(block).height())
             block_number += 1
     
+    def set_syntax_language(self, language):
+        """Set the syntax highlighting language."""
+        self.syntax_highlighter.set_language(language)
+
     _BRACKET_PAIRS = {'(': ')', '[': ']', '{': '}'}
     _QUOTE_CHARS = {'"', "'"}
     _CLOSING_BRACKETS = {')', ']', '}'}

@@ -6,6 +6,7 @@ from PyQt6.QtGui import QDrag
 
 from editor.text_editor import TextEditor
 from editor.document import Document
+from editor.language_detector import LanguageDetector
 
 
 TAB_STYLE = """
@@ -166,6 +167,8 @@ class TabWidget(QTabWidget):
                 tab.editor.setPlainText(content)
                 tab.document.file_path = file_path
                 tab.document.is_modified = False
+                language = LanguageDetector.detect_language(file_path)
+                tab.editor.set_syntax_language(language)
             except Exception:
                 pass
         
@@ -256,6 +259,8 @@ class TabWidget(QTabWidget):
                 current.editor.setPlainText(content)
                 current.document.file_path = file_path
                 current.document.is_modified = False
+                language = LanguageDetector.detect_language(file_path)
+                current.editor.set_syntax_language(language)
                 self._update_tab_title(current)
                 self.current_document_changed.emit()
                 return True
@@ -291,5 +296,7 @@ class TabWidget(QTabWidget):
         if tab:
             tab.document.file_path = file_path
             tab.document.is_modified = False
+            language = LanguageDetector.detect_language(file_path)
+            tab.editor.set_syntax_language(language)
             self._update_tab_title(tab)
             self.current_document_changed.emit()
